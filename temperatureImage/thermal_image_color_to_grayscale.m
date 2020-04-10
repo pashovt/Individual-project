@@ -6,7 +6,7 @@ format long g;
 format compact;
 fontSize = 15;
 
-%===============================================================================
+%% ===============================================================================
 % Get the name of the image the user wants to use.
 baseFileName = 'thermal_image.png'; % Base file name with no folder prepended (yet).
 % Get the full filename, with path prepended.
@@ -15,7 +15,7 @@ baseFileName = 'thermal_image.png'; % Base file name with no folder prepended (y
 % fprintf('Transforming image "%s" to a thermal image.\n', fullFileName);
 
 load('frameData.mat')
-%===============================================================================
+%% ===============================================================================
 % Read in a demo image.
 originalRGBImage = frame;
 % originalRGBImage = imread(fullFileName);
@@ -31,13 +31,13 @@ drawnow;
 
 grayImage = min(originalRGBImage, [], 3); % Useful for finding image and color map regions of image.
 
-%=========================================================================================================
+%% =========================================================================================================
 % Need to crop out the image and the color bar separately.
 % First crop out the image.
-imageRow1 = 1; ...30;
-imageRow2 = size(frame, 1);
-imageCol1 = 1;
-imageCol2 = size(frame, 2); ...-25;
+imageRow1 = 140; ...1; ...30;
+imageRow2 = 240; ...size(frame, 1);
+imageCol1 = 100; ...1;
+imageCol2 = 200; ...size(frame, 2); ...-25;
 % Crop off the surrounding clutter to get the RGB image.
 rgbImage = originalRGBImage(imageRow1 : imageRow2, imageCol1 : imageCol2, :);
 % imcrop(originalRGBImage, [20, 40, 441, 259]);
@@ -52,7 +52,7 @@ colorBarCol2 = 303+15;
 colorBarImage = originalRGBImage(colorBarRow1 : colorBarRow2, colorBarCol1 : colorBarCol2, :);
 b = colorBarImage(:,:,3);
 
-%=========================================================================================================
+%% =========================================================================================================
 % Display the pseudocolored RGB image.
 subplot(2, 3, 2);
 imshow(rgbImage, []);
@@ -82,7 +82,7 @@ set(gcf, 'Units', 'Normalized', 'OuterPosition', [0 0 1 1]);
 % Give a name to the title bar.
 set(gcf, 'Name', 'Demo by ImageAnalyst', 'NumberTitle', 'Off')
 
-%=========================================================================================================
+%% =========================================================================================================
 % Get the color map from the color bar image.
 storedColorMap = colorBarImage(:,1,:);
 % Need to call squeeze to get it from a 3D matrix to a 2-D matrix.
@@ -103,7 +103,7 @@ xlabel('Column', 'FontSize', fontSize, 'Interpreter', 'None');
 ylabel('Row', 'FontSize', fontSize, 'Interpreter', 'None');
 drawnow;
 
-%=========================================================================================================
+%% =========================================================================================================
 % Now we need to define the temperatures at the end of the colored temperature scale.
 % You can read these off of the image, since we can't figure them out without doing OCR on the image.
 % Define the temperature at the top end of the scale.
@@ -130,7 +130,7 @@ hp = impixelinfo();
 hp.Units = 'normalized';
 hp.Position = [0.45, 0.03, 0.25, 0.05];
 
-%=========================================================================================================
+%% =========================================================================================================
 % Get and display the histogram of the thermal image.
 subplot(2, 3, 6);
 histogram(thermalImage, 'Normalization', 'probability');

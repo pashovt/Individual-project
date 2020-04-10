@@ -6,8 +6,18 @@
 %% Make a further crop - middle of the image where low noise can be seen
 %% Plot a fitted curve on the further crop image for polynomial 5x5
 
+% mask explanation
+mask = L < 0;
+light_blue = [.6 .6 1];
+overlay = imoverlay(rgb, mask, light_blue);
+
 %% Info
 maxTemp = max(temperatureImage(:))
+
+% hasFrame	Determine if video frame is available to read
+% read	Read one or more video frames
+% readFrame	Read next video frame
+
 
 % You just simply need to modify the low and high temperature, 
 % and adjust the row and column where the image and colorbar are taken from.

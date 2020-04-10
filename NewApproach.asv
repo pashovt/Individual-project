@@ -3,8 +3,6 @@ clear
 clc
 format long g;
 format compact;
-fileName = 'FLIR0206v2.mp4';
-% data = summaryCode(fileName);
 
 %% Methodology
 % Import sample data
@@ -93,16 +91,15 @@ while(hasFrame(videoData))
     % Temperature image
     tempImage = convertToThermalImage(CroppedRGBFrame, CroppedRGBColorBar, highTemp, lowTemp);
     
-    histogram(thermalImage, 'Normalization', 'probability');
 
     %% threshold 
-    tempImage2 = tempImage;
+
     therhold = mean([highTemp, lowTemp]);
     % Get map of where image is less than the threshold
-    binaryImage = tempImage2<therhold;
+    binaryImage = tempImage<therhold;
     % Set pixels meeting threshold criteria to black (zeros).
-    tempImage2(binaryImage) = 0; % Set to black
-    imshow(tempImage2, [])
+    tempImage(binaryImage) = 0; % Set to black
+    imshow(tempImage, [])
 %%    SEGMENT IMAGE
     if rem(nthframe, 100) == 1
         Aref=RGBframe;
