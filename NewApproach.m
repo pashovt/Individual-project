@@ -31,7 +31,6 @@ fileName = 'FLIR0206v2.mp4';
 % 
 % 
 % 
-% serpentine analysis
 
 % Import sample data/Read video data
 videoData = VideoReader("FLIR0206v2.mp4");
@@ -102,51 +101,44 @@ while(hasFrame(videoData))
     % Generates an image that contains the temperature values of each pixel
     % based on the colorbar
     tempImage = convertToThermalImage(CroppedRGBFrame, CroppedRGBColorBar, highTemp, lowTemp);
+
+    threshold = highTemp; ...(lowTemp+highTemp)/1.5;
+    pos = find(tempImage>threshold-0.5 & tempImage<threshold+0.5);
+    row = rem(pos(1), size(RGBframe, 1));
+    col = ceil(pos(1)/size(RGBframe, 2));
+    highLevelExposure = imbinarize(rgb2gray(RGBframe), double(rgb2gray(RGBframe(row, col, :)))/255, 'ForegroundPolarity', 'dark');
+    imshow(highLevelExposure)
+    imshow(RGBframe)
     
-%     histogram(thermalImage, 'Normalization', 'probability');
+    frameName = './frames/frame1.jpg';
+    methods = {'sobel', 'Prewitt', 'Roberts', 'log', 'zerocross', 'Canny', 'approxcanny'};
+    for ii = 1:length(methods)
+        reducedFrameAnalysis(frameName, methods{ii})
+    end
     
+    roipoly
+    
+    sample_region = [50 100 50 100]; % region of interest
+    x = RGBframe;
+    cform = makecform('srgb2lab');
+    lab_x = applycform(x, cform);
+    
+    a = lab_x(:, :, 2);
+    b = lab_x(:, :, 3);
+    color_markers = repmat(0, [6, 2]); % 6 - number of regions
+    for cc = 1:6
+        color_markers(cc, 1) = mean2(a(sample_region(:,:,cc)));
+        color_markers(cc, 2) = mean2(b(sample_region(:,:,cc)));
+    end
 %%    SEGMENT IMAGE
-    if rem(nthframe, 100) == 1
-        Aref=RGBframe;
-        Alab_ref=rgb2lab(RGBframe); % For normal array image - 3d or more
-%         Alab_ref=rgb2lab( repmat(reducedFrame, [1 1 3]) ); % for 2d array image
-    end
-    
-    Alab = rgb2lab(RGBframe);
-    
-    [L,N] = superpixels(Alab_ref,nRegions,'isInputLab',true);
-    BW = boundarymask(L);
-%     res = imOverlay(thermalImage, BW, 'cyan')
-    imshow(imoverlay(RGBframe,BW,'cyan'), [])
-    
-    pixelIdxList = label2idx(L);
-    meanColor = zeros(N,3);
-    [m,n] = size(L);
-    for  i = 1:N
-        meanColor(i,1) = median(Alab(pixelIdxList{i}));
-        meanColor(i,2) = median(Alab(pixelIdxList{i}+m*n));
-        meanColor(i,3) = median(Alab(pixelIdxList{i}+2*m*n));
-        data(nthframe, i,1) = meanColor(i,1);
-        data(nthframe, i,2) = meanColor(i,2) ;
-        data(nthframe, i,3) = meanColor(i,3);
-    end
-    numColors = nRegions;
-    [idx,cmap] = kmeans(meanColor,numColors,'replicates',2);
-    cmap = lab2rgb(cmap);
-    Lout = zeros(size(RGBframe,1),size(RGBframe,2));
-    for i = 1:N
-        Lout(pixelIdxList{i}) = idx(i);
-    end
+
+
 end
 
 
-%%
+%% Generates an image that contains the temperature values 
+% for each pixel based on the colorbar inside the frame image
 function thermalImage = convertToThermalImage(rgbImage, colorBarImage, highTemp, lowTemp)
-
-% Useful for finding image and color map regions of image.
-% imshow(min(frameImage, [], 3), [])
-% imshow(max(frameImage, [], 3), [])
-% imshow((min(frameImage, [], 3)+max(frameImage, [], 3))/2, [])
 
 % Get the color map from the color bar image.
 storedColorMap = colorBarImage(:,1,:);
