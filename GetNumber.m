@@ -1,4 +1,4 @@
-function numbers = GetNumber(image)
+function numbers = GetTempNumber(image)
 % https://uk.mathworks.com/matlabcentral/answers/377444-why-ocr-function-doesn-t-recognize-the-numbers
 ii = rgb2gray(image);
 ii(ii>0 & ii <220) = 0;

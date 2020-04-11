@@ -41,7 +41,8 @@ vidWidth = videoData.Width;
 % Cropped values for image - reduces the noice present in the dataset
 imageCrop = [140, 240, 100, 200];
 colorBar = [25, 200, 303, 303+15];
-%% Outomatically find colorbar
+%% TODO - Automatically find colorbar and the remaining noise components
+% https://uk.mathworks.com/matlabcentral/answers/35243-detecting-rectangle-shape-in-an-image
 % img = imread('rect.jpg');
 % bw = im2bw(img);
 % 
@@ -59,8 +60,8 @@ colorBar = [25, 200, 303, 303+15];
 
 
 % creates a storable variable
-storedData = struct('colordata',zeros(vidHeight,vidWidth,3), ...
-    'colormap',zeros((colorBar(2) - colorBar(1)), (colorBar(4) - colorBar(3)), 3));
+% storedData = struct('colordata',zeros(vidHeight,vidWidth,3), ...
+%     'colormap',zeros((colorBar(2) - colorBar(1)), (colorBar(4) - colorBar(3)), 3));
 
 % Read frame for frame
 % Number of segmentations
@@ -70,39 +71,40 @@ data=zeros(numFrames,nRegions,3);
 
 
 while(hasFrame(videoData))
+    % read the next frame
     RGBframe = readFrame(videoData);
+    % find which frame has been read
     nthframe = ceil(videoData.CurrentTime*videoData.FrameRate);
 
-    % Need to crop out the image and the color bar separately.
-    % Crop off the surrounding clutter to get the RGB image.
+    % Cropping out the colorbar and undestorted image
+    %% TO CHANGE the crop for the undestored image
+    % Undestorted image
     CroppedRGBFrame = RGBframe(imageCrop(1):imageCrop(2), imageCrop(3):imageCrop(4), :);
-    % Crop off the surrounding clutter to get the colorbar.
+    % Colorbar
 	CroppedRGBColorBar = RGBframe(colorBar(1):colorBar(2), colorBar(3):colorBar(4), :);
 
-    % OCR (optical character recognition) on the image
-
+    % Cropping the section where high temp reading is
     highTempCrop = RGBframe(1:25, 250:size(RGBframe,2), :);
-    highTemp = GetNumber(highTempCrop);
+    % Cropping the section where low temp reading is
     lowTempCrop = RGBframe(200:size(RGBframe, 1), 250:size(RGBframe,2), :);
-    lowTemp = GetNumber(lowTempCrop);
+    % OCR (optical character recognition) on the image
+    % Find the value for the high temp based on the image
+    highTemp = GetTempNumber(highTempCrop);
+    % Find the value for the low temp based on the image
+    lowTemp = GetTempNumber(lowTempCrop);
 
+    % checks if the OCR method has worked succefully and has returned wrong
+    % values
     if highTemp < lowTemp
         error('there is a issue in the ocr method')
     end
 
-    % Temperature image
+    % Generates an image that contains the temperature values of each pixel
+    % based on the colorbar
     tempImage = convertToThermalImage(CroppedRGBFrame, CroppedRGBColorBar, highTemp, lowTemp);
     
-    histogram(thermalImage, 'Normalization', 'probability');
-
-    %% threshold 
-    tempImage2 = tempImage;
-    therhold = mean([highTemp, lowTemp]);
-    % Get map of where image is less than the threshold
-    binaryImage = tempImage2<therhold;
-    % Set pixels meeting threshold criteria to black (zeros).
-    tempImage2(binaryImage) = 0; % Set to black
-    imshow(tempImage2, [])
+%     histogram(thermalImage, 'Normalization', 'probability');
+    
 %%    SEGMENT IMAGE
     if rem(nthframe, 100) == 1
         Aref=RGBframe;

@@ -1,0 +1,19 @@
+Comments on video file  	E:\My Programs\MATLAB\RazorClamsVideoProcessing\MeasureObjectsOnVideo_V2.8\Demo.mp4
+Video 	Video 			Comment
+frame 	time 
+
+Object measurements
+Measurements recorded on 	26-Jan-2017 12:12:45
+
+Count class 1 objects 		1
+Count class 2 objects 		1
+Count class 3 objects 		0
+Count class 4 objects 		0
+Count class 5 objects 		0
+Count class 6 objects 		0
+Count objects 			2
+
+Video 		Video 			Dist 	Class
+frame 		time 			pix 	
+8 		12-Dec-2013 12:12:23 	440 	1 
+8 		12-Dec-2013 12:12:23 	411 	2 
