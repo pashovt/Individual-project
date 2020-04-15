@@ -5,6 +5,11 @@
 
 
 %% FOR NOW
+% edge detection with specific threshold (from the thermal image)
+    % basic morphological processing
+    % further image segmentation for depicting large clusters
+% Color threshold app
+% improve edge detection method with thresholding and binarization of image
 % https://uk.mathworks.com/products/computer-vision.html 
     % Feature detection and extraction
     % Segmentation & shape fitting
@@ -22,6 +27,7 @@
     % bwlabel
 % edge detection - test different edge methods
     % reducedFrameAnalysis
+    % https://uk.mathworks.com/videos/edge-detection-with-matlab-119353.html
 % approach 1
     % https://uk.mathworks.com/videos/color-based-segmentation-with-live-image-acquisition-68771.html
 % K - mean clustering

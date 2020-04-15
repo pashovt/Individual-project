@@ -6,6 +6,28 @@ format compact;
 fileName = 'FLIR0206v2.mp4';
 % data = summaryCode(fileName);
 
+% Methidology
+% 
+% Import data
+% Image enhancement & Image restoration - noise removal
+%     Identify regions of high level noise (video readings - temperature bar, temperature limits, etc.) using object detection
+%     Store the location of the noise regions
+% Read frame for frame and perform the analysis based on the frames while ignoring the noise regions
+% 
+% Morhological Processing
+%     To improve the quality of the image. For example erode and dilate gray scale image
+% Segmentation
+%     Using edge detection with the ... operator
+%     Using automatically assigned and calculated threshold value for the intenity of pixels
+%     Additional morthological processing
+%     Add fillings to the holes
+%     Classification of defects
+% Object Recognition
+%     Continuesly monitor the changes around the areas of the classified defects
+%     Identify if the classified defects are real based on the thermal cooling
+% Representation and description
+%     Showing correlation between the pixels inside the classified defects to show the likely structure of the feature and possible provide data on its depth
+
 %% Methodology
 % Import sample data
 % Read video data
@@ -106,12 +128,12 @@ while(hasFrame(videoData))
     pos = find(tempImage>threshold-0.5 & tempImage<threshold+0.5);
     row = rem(pos(1), size(RGBframe, 1));
     col = ceil(pos(1)/size(RGBframe, 2));
-    highLevelExposure = imbinarize(rgb2gray(RGBframe), double(rgb2gray(RGBframe(row, col, :)))/255, 'ForegroundPolarity', 'dark');
-    imshow(highLevelExposure)
-    imshow(RGBframe)
+    highLevelExposure = imbinarize(rgb2gray(RGBframe), double(rgb2gray(RGBframe(row, col, :)))/255); ..., 'ForegroundPolarity', 'dark');
+    figure; imshow(highLevelExposure)
+    figure; imshow(RGBframe)
     
     frameName = './frames/frame1.jpg';
-    methods = {'sobel', 'Prewitt', 'Roberts', 'log', 'zerocross', 'Canny', 'approxcanny'};
+    methods = {'sobel'};
     for ii = 1:length(methods)
         reducedFrameAnalysis(frameName, methods{ii})
     end
