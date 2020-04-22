@@ -17,7 +17,39 @@ vidWidth = videoData.Width;
 imageCrop = [140, 240, 100, 200];
 colorBar = [25, 200, 303, 303+15];
 %% TODO - Automatically find colorbar and the remaining noise components
+sampleFrame = read(videoData, 1);
+% https://uk.mathworks.com/matlabcentral/answers/35243-detecting-rectangle-shape-in-an-image
+bw = im2bw(sampleFrame);
 
+% find both black and white regions
+stats = [regionprops(bw); regionprops(not(bw))];
+
+val = 25;
+frameReadingAreaX = [val size(sampleFrame,1)-val];
+frameReadingAreaY = [val size(sampleFrame,2)-val];
+cz2 = 1;
+for jk = 1:numel(stats)
+    if not(frameReadingAreaX(1) < stats(jk).Centroid(2) && ...
+            stats(jk).Centroid(2) < frameReadingAreaX(2) && ...
+            frameReadingAreaY(1) < stats(jk).Centroid(1) && ...
+            stats(jk).Centroid(1) < frameReadingAreaY(2))
+        if stats(jk).Area > 5
+            newstats2(cz2) = stats(jk);
+            cz2 = cz2 + 1;
+        end
+    end
+end
+
+% show the image and draw the detected rectangles on it
+figure; imshow(sampleFrame);
+axis on
+hold on;
+% figure; plot(xx, yy, 'g.', 'LineStyle' , 'none', 'MarkerSize', 20)
+
+for i = 1:numel(newstats2)
+    rectangle('Position', newstats2(i).BoundingBox, ...
+    'Linewidth', 3, 'EdgeColor', 'r', 'LineStyle', '--');
+end
 
 
 
