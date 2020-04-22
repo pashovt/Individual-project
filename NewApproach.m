@@ -13,37 +13,41 @@ videoData = VideoReader("FLIR0206v2.mp4");
 vidHeight = videoData.Height;
 vidWidth = videoData.Width;
 
-% Cropped values for image - reduces the noice present in the dataset
+% Noise boxes that are to be ignored during the image processing 
+dt = getBoxes(videoData);
+
+%% TO CHANGE image to tilt plane
 imageCrop = [140, 240, 100, 200];
+
+% Cropped values for colorbar 
 colorBar = [25, 200, 303, 303+15];
-%% TODO - Automatically find colorbar and the remaining noise components
 
-
-
-
+numFrames = videoData.NumFrames;
 
 % creates a storable variable
-storedData = struct('colordata',zeros(vidHeight,vidWidth,3), ...
-    'colormap',zeros((colorBar(2) - colorBar(1)), (colorBar(4) - colorBar(3)), 3));
+% storedData(numFrames) = struct('colordata',zeros(vidHeight,vidWidth,3), ...
+%     'colormap',zeros((colorBar(2) - colorBar(1)), (colorBar(4) - colorBar(3)), 3));
+storedData(numFrames) = struct('colordata', 0, 'colormap',0);
 
 % Read frame for frame
 % Number of segmentations
 nRegions = 20;
-numFrames = videoData.NumFrames;
 % second storage variable
 data=zeros(numFrames,nRegions,3);
 
 
 while(hasFrame(videoData))
+
+
     % read the next frame
     RGBframe = readFrame(videoData);
     % find which frame has been read
     nthframe = ceil(videoData.CurrentTime*videoData.FrameRate);
 
-    x = 1:size(RGBframe, 1);
-    y = 1:size(RGBframe, 2);
+    xv = 1:size(RGBframe, 1);
+    yv = 1:size(RGBframe, 2);
     grayImage = rgb2gray(RGBframe);
-    
+    plot3()
     % Cropping out the colorbar and undestorted image
     %% TO CHANGE the crop for the undestored image
     % Undestorted image
