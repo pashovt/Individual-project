@@ -51,15 +51,15 @@ colorScaleRegion = secondDistoredRegions(:, end-50:end);
 % Cropped values for colorbar 
 colorBar = [25, 200, 303, 303+15];
 
-% Number of frames
 numFrames = videoData.NumFrames;
-% Number of segmentations
-nRegions = 20;
 
-% Storage variables
+% creates a storable variable
 % storedData(numFrames) = struct('colordata',zeros(vidHeight,vidWidth,3), ...
 %     'colormap',zeros((colorBar(2) - colorBar(1)), (colorBar(4) - colorBar(3)), 3));
 storedData(numFrames) = struct('colordata', 0, 'colormap',0);
+
+% Number of segmentations
+nRegions = 20;
 % second storage variable
 data=zeros(numFrames,nRegions,3);
 
@@ -73,7 +73,6 @@ while(hasFrame(videoData))
     % find which frame has been read
     nthframe = ceil(videoData.CurrentTime*videoData.FrameRate);
 
-    % for scaller plot or similar to the curve fitting one
     xv = 1:size(RGBframe, 1);
     yv = 1:size(RGBframe, 2);
     grayImage = rgb2gray(RGBframe);
@@ -98,48 +97,6 @@ while(hasFrame(videoData))
             'EdgeColor','r','LineWidth',2 )
     end
     
-
-    redChannel = rgbImage(:, :, 1);
-greenChannel = rgbImage(:, :, 2);
-blueChannel = rgbImage(:, :, 3);
-% Display the color channels
-subplot(2, 3, 4);
-imshow(redChannel);
-title('Red Channel Image', 'FontSize', fontSize);subplot(2, 3, 2);
-subplot(2, 3, 5);
-imshow(greenChannel);
-title('Green Channel Image', 'FontSize', fontSize);subplot(2, 3, 2);
-subplot(2, 3, 6);
-imshow(blueChannel);
-title('Blue Channel Image', 'FontSize', fontSize);
-% Let's compute and display the histogram.
-[pixelCount, grayLevels] = imhist(greenChannel);
-% Suppress pure black so we can see the histogram.
-pixelCount(1) = 0;
-subplot(2, 3, 2); 
-bar(pixelCount);
-grid on;
-title('Histogram of Green Channel', 'FontSize', fontSize);
-xlim([0 grayLevels(end)]); % Scale x axis manually.
-% Create a binary image
-binaryImage = greenChannel > 13;
-% Fill holes
-binaryImage = imfill(binaryImage, 'holes');
-% Get rid of small specks.
-binaryImage = bwareaopen(binaryImage, 10000);
-subplot(2, 3, 3);
-imshow(binaryImage);
-title('Binary Image', 'FontSize', fontSize);
-% Get the mean of the red and blue channel 
-% within the white pixels of the binary image using one method.
-redMean = mean(redChannel(binaryImage))
-blueMean = mean(blueChannel(binaryImage))
-% Get the mean of the green channel 
-% within the white pixels of the binary image using one method.
-measurements = regionprops(binaryImage, greenChannel, 'MeanIntensity');
-greenMean = measurements.MeanIntensity
-message = sprintf('The mean red intensity = %.2f.\nThe green mean = %.2f.\nThe mean blue intensity = %.2f.',...
-  redMean, greenMean, blueMean);
 
     DistoredRegions = edge(rgb2gray(RGBframe), 'sobel', 0.25);
     colorRegion = DistoredRegions(:, end-50:end);

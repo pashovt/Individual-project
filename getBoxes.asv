@@ -54,25 +54,18 @@ end
 
 dt = data(find(d>0, 1)).data;
 
+imshow(distoredRegions, [])
+hold on
 % enlarger regions
 for ii = 1:numel(dt)
-    vals = [dt(ii).BoundingBox(1), ... % x
-        dt(ii).BoundingBox(2), ... % y
-        dt(ii).BoundingBox(3), ... % w
-        dt(ii).BoundingBox(4)]; % h
-    if any(vals<1) 
-        vals(vals<1) = 1;
-    end
-    x = floor(vals(1));
-    y = floor(vals(2));
-    w = ceil(vals(3));
-    h = ceil(vals(4));
-    row = y:y+h;
-    column = x:x+w;
-    distoredRegions(row, column) = 0;
-    % checker for box comparison
-%     imshow(distoredRegions, [])
-%     rectangle('Position', [dt(ii).BoundingBox(1),dt(ii).BoundingBox(2),dt(ii).BoundingBox(3),dt(ii).BoundingBox(4)],...
-%         'EdgeColor','r','LineWidth',2 )
+%     x = dt(ii).BoundingBox(1);
+%     y = dt(ii).BoundingBox(2);
+%     w = dt(ii).BoundingBox(3);
+%     h = dt(ii).BoundingBox(4);
+%     distoredRegions(dt(ii).BoundingBox(1):dt(ii).BoundingBox(3)+dt(ii).BoundingBox(1), ...
+%         dt(ii).BoundingBox(2):dt(ii).BoundingBox(4)+dt(ii).BoundingBox(2)) = 0;
+    
+    rectangle('Position', [dt(ii).BoundingBox(1),dt(ii).BoundingBox(2),dt(ii).BoundingBox(3),dt(ii).BoundingBox(4)],...
+        'EdgeColor','r','LineWidth',2 )
 end
 end
