@@ -5,6 +5,7 @@ format shortG;
 format compact;
 fileName = 'FLIR0206v2.mp4';
 set(0,'DefaultFigureWindowStyle','docked')
+% set(gcf, 'units','normalized','outerposition',[0 0 1 1]);
 % data = summaryCode(fileName);
 
 
@@ -13,15 +14,17 @@ videoData = VideoReader("FLIR0206v2.mp4");
 vidHeight = videoData.Height;
 vidWidth = videoData.Width;
 
+%% Noise regions
 % Noise boxes that are to be ignored during the image processing 
 distoredRegions = getBoxes(videoData);
 videoData.CurrentTime = 0;
 sampleFrame = read(videoData, 1);
 secondDistoredRegions = edge(rgb2gray(sampleFrame), 'sobel', 0.25);
 distoredRegions(secondDistoredRegions==1) = 0;
-colorScaleRegion = secondDistoredRegions(:, end-50:end);
+imshow(distoredRegions)
 
 %%
+colorScaleRegion = secondDistoredRegions(:, end-50:end);
 % bw = im2bw(colorScaleRegion);
 % 
 % % find both black and white regions
@@ -51,15 +54,15 @@ colorScaleRegion = secondDistoredRegions(:, end-50:end);
 % Cropped values for colorbar 
 colorBar = [25, 200, 303, 303+15];
 
+% Number of frames
 numFrames = videoData.NumFrames;
+% Number of segmentations
+nRegions = 20;
 
-% creates a storable variable
+% Storage variables
 % storedData(numFrames) = struct('colordata',zeros(vidHeight,vidWidth,3), ...
 %     'colormap',zeros((colorBar(2) - colorBar(1)), (colorBar(4) - colorBar(3)), 3));
 storedData(numFrames) = struct('colordata', 0, 'colormap',0);
-
-% Number of segmentations
-nRegions = 20;
 % second storage variable
 data=zeros(numFrames,nRegions,3);
 
@@ -73,29 +76,18 @@ while(hasFrame(videoData))
     % find which frame has been read
     nthframe = ceil(videoData.CurrentTime*videoData.FrameRate);
 
-    xv = 1:size(RGBframe, 1);
-    yv = 1:size(RGBframe, 2);
-    grayImage = rgb2gray(RGBframe);
-    %     plot3(xv,yv,grayImage)
+    %% binary green channel image
+    % gets binary image from the green channel
+    [binaryImage, meanIntensity] = reducedColorDeviderv2(RGBframe);
+    figure; imshow(binaryImage)
+    title('Frame %2.f', nthframe)
     
-    sz = regionprops(RGBframe);
-    imshow(RGBframe, [])
-    hold on
-    for ii = 1:numel(sz)
-        vals = sz(ii).BoundingBox;
-        if any(vals<1)
-            vals(vals<1) = 1;
-        end
-        x = floor(vals(1));
-        y = floor(vals(2));
-        w = ceil(vals(3));
-        h = ceil(vals(4));
-        %     row = y:y+h;
-        %     column = x:x+w;
-        % checker for box comparison
-        rectangle('Position', [x,y,w,h],...
-            'EdgeColor','r','LineWidth',2 )
-    end
+%     % for scaller plot or similar to the curve fitting one
+%     xv = 1:size(RGBframe, 1);
+%     yv = 1:size(RGBframe, 2);
+%     grayImage = rgb2gray(RGBframe);
+%     %     plot3(xv,yv,grayImage)
+    
     
 
     DistoredRegions = edge(rgb2gray(RGBframe), 'sobel', 0.25);
@@ -140,23 +132,30 @@ while(hasFrame(videoData))
         double(rgb2gray(RGBframe(row, col, :)))/255);
     originalBinary = imbinarize(rgb2gray(RGBframe));
 
-    figure; imshow(highLevelExposure)
-    figure; imshow(originalBinary)
+    figure; 
+    subplot(1,2,1); imshow(highLevelExposure)
+    subplot(1,2,2); imshow(originalBinary)
 
-    figure; imcontour(originalBinary)
-    figure; imcontour(highLevelExposure)
-%     figure; imhist(originalBinary)
-%     figure; imhist(grayImage)
-%     figure; imhist(RGBframe)
-    figure; imshow(RGBframe)
+%     % contour image
+%     figure; 
+%     subplot(1,2,1); imcontour(originalBinary)
+%     subplot(1,2,2); imcontour(highLevelExposure)
+%     figure; imshow(RGBframe)
     
-    %% apply edge to lab image
-    frameName = './frames/frame1.jpg';
-    methods = {'sobel'};
-    for ii = 1:length(methods)
-        reducedFrameAnalysis(frameName, methods{ii})
-    end
     
+    reducedFrameAnalysis(frameName, 'sobel')
+    reducedFrameAnalysisv2(ImageRaw, method)
+    
+    %% To test
+    
+    % %% apply edge to lab image
+    imshow(rgb2lab(RGBframe))
+    % try bounding box
+    imshow(rgb2hsv(RGBframe))
+    imshow(rgb2ycbcr(RGBframe))
+    
+    
+    rgb2lab(RGBframe)
     roipoly
     
     sample_region = [50 100 50 100]; % region of interest
