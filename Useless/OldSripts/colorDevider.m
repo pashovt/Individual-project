@@ -21,17 +21,21 @@ blueChannel = RGBframe(:, :, 3);
 % getBar(blueChannel)
 
 % red image
-% [binaryImage, message] = binaryExtraction(redChannel, greenChannel, blueChannel, [2, 3, 4], ['red', 'green', 'blue'], fontSize);
+% [binaryImage, message] = binaryExtraction(redChannel, greenChannel, ...
+    % blueChannel, [2, 3, 4], ['red', 'green', 'blue'], fontSize);
 % green image
-[binaryImage, message] = binaryExtraction(greenChannel, redChannel, blueChannel, [2, 3, 5], ['green', 'red', 'blue'], fontSize);
+[binaryImage, message] = binaryExtraction(greenChannel, redChannel, ...
+    blueChannel, [2, 3, 5], ['green', 'red', 'blue'], fontSize);
 % blue image
-% [binaryImage, message] = binaryExtraction(blueChannel, redChannel, greenChannel, [2, 3, 6], ['blue', 'red', 'green'], fontSize);
+% [binaryImage, message] = binaryExtraction(blueChannel, redChannel, ...
+    % greenChannel, [2, 3, 6], ['blue', 'red', 'green'], fontSize);
 
 
 end
 
 
-function [binaryImage, message] = binaryExtraction(mainColorChannel, secondColorChannel, thirdColorChannel, pos, order, fontSize)
+function [binaryImage, message] = binaryExtraction(mainColorChannel, ...
+    secondColorChannel, thirdColorChannel, pos, order, fontSize)
 binaryImage = binarization(mainColorChannel, pos, fontSize);
 % Get the mean of the red and blue channel
 % within the white pixels of the binary image using one method.

@@ -18,7 +18,7 @@ blueChannel = RGBframe(:, :, 3);
 binaryImage = greenChannel > 13;
 % Fill holes
 binaryImage = imfill(binaryImage, 'holes');
-% Get rid of small specks.
+% Get rid of small particles less than 10000 pixels in area.
 binaryImage = bwareaopen(binaryImage, 10000);
 
 

@@ -1,14 +1,105 @@
-close all
-clear
-clc
-format shortG;
-format compact;
-fileName = 'FLIR0206v2.mp4';
-set(0,'DefaultFigureWindowStyle','docked')
-% set(gcf, 'units','normalized','outerposition',[0 0 1 1]);
-% data = summaryCode(fileName);
+function main(filename, coller_type)
+
+vid = VideoReader(filename);
+
+numFrames = vidObj.NumFrames;
+
+Height = vidObj.Height;
+Width = vidObj.Width;
+empty_struct = container(Height, Width);
+populated_struct = populateStruct(vid, empty_struct);
+
+frame = read(vid, 1);
+if coller_type == "to crop"
+
+    imshow(frame)
+    
+    
+end
+
+end
+
+% Create an emptry strucure that will hause the video frame data
+function structure = container(Height, Width)
+structure = struct('colordata',zeros(Height,Width,3,'uint8'),...
+    'colormap',[]);
+end
+
+% Populate the empty strucure from container function with frame 
+% data from the video
+function empty_struct = populateStruct(video, empty_struct)
+while hasFrame(video)
+    nthframe = ceil(video.CurrentTime*video.FrameRate);
+    empty_struct(nthframe).colordata = readFrame(video);
+    % save the frame as a .jpg image
+    % imwrite(empty_struct(nthframe).colordata, strcat(...
+    %     './frames/frame', num2str(nthframe), '.jpg'));
+end
+end
+
+%% TO CHECK
+function [data, Lout] = VideoAnalyser(numFrames, s, nreg)
+data=zeros(numFrames,nreg,3);
+
+take_ref = 1:100:numFrames;
+
+for nframe = 1:numFrames
+    if find(take_ref==nframe)
+       Aref=s(nframe).colordata;
+       Alab_ref=rgb2lab(Aref);
+    end
+    
+    A=s(nframe).colordata;
+    Alab = rgb2lab(A);
+    [L,N] = superpixels(Alab_ref,nreg,'isInputLab',true);
+    BW = boundarymask(L);
+    %f1=figure();
+    imshow(imoverlay(A,BW,'cyan'))
+    pixelIdxList = label2idx(L);
+    meanColor = zeros(N,3);
+    [m,n] = size(L);
+    for  i = 1:N
+        meanColor(i,1) = median(Alab(pixelIdxList{i}));
+        meanColor(i,2) = median(Alab(pixelIdxList{i}+m*n));
+        meanColor(i,3) = median(Alab(pixelIdxList{i}+2*m*n));
+        data(nframe, i,1) = meanColor(i,1); 
+        data(nframe, i,2) = meanColor(i,2) ;
+        data(nframe, i,3) = meanColor(i,3); 
+    end
+    numColors = nreg;
+%     idx = kmeans(meanColor,numColors,'replicates',2);
+    [idx,cmap] = kmeans(meanColor,numColors,'replicates',2);
+    cmap = lab2rgb(cmap);
+    Lout = zeros(size(A,1),size(A,2));
+    for j = 1:N
+        Lout(pixelIdxList{j}) = idx(j);
+    end
+%     f2=figure();
+% 
+%     imshow(label2rgb(Lout))
+%     f3=figure();
+% 
+%     imshow(Lout,cmap)
+end
+end
+
+function DataPlotter(numFrames, nreg, data)
+figure;
+grid on
+hold on
+% c = linspace(0,1,nreg);
+rgb=jet(nreg);
+% tic,
+for N = 1:nreg
+%     c(N)
+%     rgb(N,:)
+    scatter(linspace(0,1,numFrames), data(:,N,1),25,rgb(N,:));
+end
+% toc,
+end
 
 
+%% More to check
 % Import sample data/Read video data
 videoData = VideoReader("FLIR0206v2.mp4");
 vidHeight = videoData.Height;
@@ -20,8 +111,10 @@ distoredRegions = getBoxes(videoData);
 videoData.CurrentTime = 0;
 sampleFrame = read(videoData, 1);
 secondDistoredRegions = edge(rgb2gray(sampleFrame), 'sobel', 0.25);
+%% Add a strel (possible a disc) to fill the gaps
 distoredRegions(secondDistoredRegions==1) = 0;
 imshow(distoredRegions)
+title('noise regions')
 
 %%
 colorScaleRegion = secondDistoredRegions(:, end-50:end);
@@ -53,6 +146,7 @@ colorScaleRegion = secondDistoredRegions(:, end-50:end);
 % then apply box allocation
 % Cropped values for colorbar 
 colorBar = [25, 200, 303, 303+15];
+imageCrop = [140, 240, 100, 200];
 
 % Number of frames
 numFrames = videoData.NumFrames;
@@ -75,12 +169,12 @@ while(hasFrame(videoData))
     RGBframe = readFrame(videoData);
     % find which frame has been read
     nthframe = ceil(videoData.CurrentTime*videoData.FrameRate);
-
+    figure; imshow(RGBframe); title('raw frame')
     %% binary green channel image
     % gets binary image from the green channel
     [binaryImage, meanIntensity] = reducedColorDeviderv2(RGBframe);
     figure; imshow(binaryImage)
-    title('Frame %2.f', nthframe)
+    title(strcat('Frame ', num2str(nthframe)))
     
 %     % for scaller plot or similar to the curve fitting one
 %     xv = 1:size(RGBframe, 1);
@@ -90,13 +184,13 @@ while(hasFrame(videoData))
     
     
 
-    DistoredRegions = edge(rgb2gray(RGBframe), 'sobel', 0.25);
-    colorRegion = DistoredRegions(:, end-50:end);
-    topCorner = colorRegion(1:50, :);
-    bottomCorner = colorRegion(end-50:end, :);
-    imshow(imdilate(topCorner, strel('disc', 2)))
-    imshow(bottomCorner)
-    imdilate(topCorner, strel('disc', 2))
+%     DistoredRegions = edge(rgb2gray(RGBframe), 'sobel', 0.25);
+%     colorRegion = DistoredRegions(:, end-50:end);
+%     topCorner = colorRegion(1:50, :);
+%     bottomCorner = colorRegion(end-50:end, :);
+%     imshow(imdilate(topCorner, strel('disc', 2)))
+%     imshow(bottomCorner)
+%     imdilate(topCorner, strel('disc', 2))
     % Cropping out the colorbar and undestorted image
     %% TO CHANGE the crop for the undestored image
     % Undestorted image
@@ -133,8 +227,8 @@ while(hasFrame(videoData))
     originalBinary = imbinarize(rgb2gray(RGBframe));
 
     figure; 
-    subplot(1,2,1); imshow(highLevelExposure)
-    subplot(1,2,2); imshow(originalBinary)
+    subplot(1,2,1); imshow(highLevelExposure); title('high exposure binary image')
+    subplot(1,2,2); imshow(originalBinary); title('normal binary image')
 
 %     % contour image
 %     figure; 
@@ -143,34 +237,34 @@ while(hasFrame(videoData))
 %     figure; imshow(RGBframe)
     
     
-    reducedFrameAnalysis(frameName, 'sobel')
-    reducedFrameAnalysisv2(ImageRaw, method)
+%     reducedFrameAnalysis(frameName, 'sobel')
+    reducedFrameAnalysisv2(RGBframe, 'sobel')
     
     %% To test
     
-    % %% apply edge to lab image
-    imshow(rgb2lab(RGBframe))
-    % try bounding box
-    imshow(rgb2hsv(RGBframe))
-    imshow(rgb2ycbcr(RGBframe))
-    
-    
-    rgb2lab(RGBframe)
-    roipoly
-    
-    sample_region = [50 100 50 100]; % region of interest
-    x = RGBframe;
-    cform = makecform('srgb2lab');
-    lab_x = applycform(x, cform);
-    
-    a = lab_x(:, :, 2);
-    b = lab_x(:, :, 3);
-    color_markers = repmat(0, [6, 2]); % 6 - number of regions
-    for cc = 1:6
-        color_markers(cc, 1) = mean2(a(sample_region(:,:,cc)));
-        color_markers(cc, 2) = mean2(b(sample_region(:,:,cc)));
-    end
-%%    SEGMENT IMAGE
+%     % %% apply edge to lab image
+%     imshow(rgb2lab(RGBframe))
+%     % try bounding box
+%     imshow(rgb2hsv(RGBframe))
+%     imshow(rgb2ycbcr(RGBframe))
+%     
+%     
+%     rgb2lab(RGBframe)
+%     roipoly
+%     
+%     sample_region = [50 100 50 100]; % region of interest
+%     x = RGBframe;
+%     cform = makecform('srgb2lab');
+%     lab_x = applycform(x, cform);
+%     
+%     a = lab_x(:, :, 2);
+%     b = lab_x(:, :, 3);
+%     color_markers = repmat(0, [6, 2]); % 6 - number of regions
+%     for cc = 1:6
+%         color_markers(cc, 1) = mean2(a(sample_region(:,:,cc)));
+%         color_markers(cc, 2) = mean2(b(sample_region(:,:,cc)));
+%     end
+% %%    SEGMENT IMAGE
 
 
 end
@@ -198,3 +292,16 @@ indexedImage = rgb2ind(rgbImage, storedColorMap);
 thermalImage = lowTemp + (highTemp - lowTemp) * mat2gray(indexedImage);
 
 end
+
+%% Labelling of binary image
+% Label each blob with 8-connectivity, so we can make measurements of it
+[labeledImage, numberOfBlobs] = bwlabel(binaryImage, 8);
+% Apply a variety of pseudo-colors to the regions.
+coloredLabelsImage = label2rgb (labeledImage, 'hsv', 'k', 'shuffle'); 
+% Display the pseudo-colored image.
+subplot(3, 3, 3);
+imshow(coloredLabelsImage);
+title('Labeled Image', 'FontSize', fontSize);
+% Get all the blob properties.
+blobMeasurements = regionprops(labeledImage, 'all')
+numberOfBlobs = size(blobMeasurements, 1)
