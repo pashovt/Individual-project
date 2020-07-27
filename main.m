@@ -55,27 +55,13 @@ CroppedRGBColorBar = sampleFrame(colorBarCrop(1):colorBarCrop(2), ...
     colorBarCrop(3):colorBarCrop(4), :);
 
 %% Temperature extaction
-%% CHANGE COLOR BOX
-figure; imshow(rgb2ind(frame, 64))
-figure; imshow(rgb2ind(frame, 128))
-figure; imshow(rgb2ind(frame, 256))
-figure; imshow(rgb2ind(frame, 512))
-figure; imshow(rgb2ind(frame, 1024))
-figure; imshow(rgb2ind(frame, 2048))
+colorScaleRegion = sampleFrame(5:235, end-40:end-3);
 
-BW = edge(rgb2gray(sampleFrame), 'sobel');
-colorScaleRegion = BW(:, end-40:end);
-% imshow(colorScaleRegion)
-
-% Cropping the section where high temp reading is
-highTempCrop = colorScaleRegion;
-% Cropping the section where low temp reading is
-lowTempCrop = colorScaleRegion;
 % OCR (optical character recognition) on the image
 % Find the value for the high temp based on the image
-highTemp = GetTempNumber(highTempCrop);
+highTemp = GetTempNumber(colorScaleRegion(1:20,:));
 % Find the value for the low temp based on the image
-lowTemp = GetTempNumber(lowTempCrop);
+lowTemp = GetTempNumber(colorScaleRegion(end-20:end,:));
 
 % checks if the OCR method has worked succefully and has returned wrong
 % values
