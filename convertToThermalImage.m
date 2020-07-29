@@ -1,10 +1,10 @@
-function thermalImage = convertToThermalImage(rgbImage, colorBarImage, ...
+function [thermalImage, storedColorMap] = convertToThermalImage(rgbImage, colorBarImage, ...
     highTemp, lowTemp)
 % Generates an image that contains the temperature values 
 % for each pixel based on the colorbar inside the frame image
 
 % Get the color map from the color bar image.
-storedColorMap = colorBarImage(:,1,:);
+storedColorMap = colorBarImage(:,size(colorBarImage,2)/2,:);
 % Need to call squeeze to get it from a 3D matrix to a 2-D matrix.
 % Also need to divide by 255 since colormap values must be between 0 and 1.
 storedColorMap = double(squeeze(storedColorMap)) / 255;

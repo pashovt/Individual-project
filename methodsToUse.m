@@ -2,8 +2,6 @@
 % Signal Processing (Version 7.2)
 
 % functions to use
-adaptthresh
-imcontour
 bwperim
 regionprops
 % Region Growing – activecontour() 
