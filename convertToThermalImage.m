@@ -4,7 +4,7 @@ function [thermalImage, storedColorMap] = convertToThermalImage(rgbImage, colorB
 % for each pixel based on the colorbar inside the frame image
 
 % Get the color map from the color bar image.
-storedColorMap = colorBarImage(:,size(colorBarImage,2)/2,:);
+storedColorMap = colorBarImage(:,1,:);
 % Need to call squeeze to get it from a 3D matrix to a 2-D matrix.
 % Also need to divide by 255 since colormap values must be between 0 and 1.
 storedColorMap = double(squeeze(storedColorMap)) / 255;

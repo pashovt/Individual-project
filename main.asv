@@ -127,7 +127,7 @@ sampleFrame(:,1:(imageCrop(3)-1),:) = 0;
 sampleFrame(:,imageCrop(4)+1:size(sampleFrame,2),:) = 0;
 imshow(sampleFrame)
 
-[binaryMask, thresholdedImage] = HSVMask(sampleFrame);
+[bw, thresholdedImage] = HSVMask(sampleFrame);
 %% RGB image analysis
 
 %% usage of multiple filters on the rgb image - FAILURE
