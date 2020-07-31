@@ -1,9 +1,13 @@
-function pointerOutliner = pointerNoise(vidObj)
+function [pointerOutliner, distoredRegions] = pointerNoise(vidObj)
 % Extracts the pointer Outlines that create an additional noise
 
+vidObj.CurrentTime = 0;
+Height = vidObj.Height;
+Width = vidObj.Width;
 % Noise boxes that are to be ignored during the image processing 
 distoredRegions = getBoxes(vidObj);
 
+sampleFrame = read(vidObj, 1);
 secondDistoredRegions = edge(rgb2gray(sampleFrame), 'sobel', 0.25);
 % Add a strel (possible a disc) to fill the gaps
 distoredRegions(secondDistoredRegions==1) = 0;
@@ -14,14 +18,17 @@ pointerOutliner = ones(Height, Width);
 pointerOutliner(Height/2-15:Height/2+15, Width/2-15:Width/2+15) = ...
     distoredRegions(Height/2-15:Height/2+15, Width/2-15:Width/2+15);
 
+vidObj.CurrentTime = 0;
 end
 
 function distoredRegions = getBoxes(videoData)
 
+nFrames = ceil(videoData.FrameRate*videoData.Duration);
+
 val = 25;
 frameReadingAreaX = [val videoData.Height-val];
 frameReadingAreaY = [val videoData.Width-val];
-data(videoData.NumFrames).data = struct();
+data(nFrames).data = struct();
 distoredRegions = ones(videoData.Height, videoData.Width);
 while(hasFrame(videoData))
     % read the next frame
@@ -65,7 +72,7 @@ while(hasFrame(videoData))
     data(nthframe).data = newstats;
 end
 
-d = zeros(videoData.NumFrames, 1);
+d = zeros(nFrames, 1);
 for k = 1:numel(data)
     d(k) = size(data(k).data, 2);
 end
@@ -89,8 +96,8 @@ for ii = 1:numel(dt)
     column = x:x+w;
     distoredRegions(row, column) = 0;
     % checker for box comparison
-%     imshow(distoredRegions, [])
-%     rectangle('Position', [dt(ii).BoundingBox(1),dt(ii).BoundingBox(2),dt(ii).BoundingBox(3),dt(ii).BoundingBox(4)],...
-%         'EdgeColor','r','LineWidth',2 )
 end
+imshow(distoredRegions, [])
+rectangle('Position', [dt(ii).BoundingBox(1),dt(ii).BoundingBox(2),dt(ii).BoundingBox(3),dt(ii).BoundingBox(4)],...
+    'EdgeColor','r','LineWidth',2 )
 end

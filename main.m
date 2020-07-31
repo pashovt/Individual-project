@@ -35,9 +35,9 @@ storedData(numFrames) = struct(...
 % populated_struct = populateStruct(vidObj, empty_struct);
 
 %% Pointer noise position
-% pointerOutliner = pointerNoise(vidObj);
+% [pointerOutliner, distoredRegions] = pointerNoise(vidObj);
 load pointerNoise.mat % pointerOutliner
-
+load distoredRegions.mat
 %% Analysis
 % read the next frame
 % RGBframe = readFrame(vidObj);
@@ -62,63 +62,15 @@ for channel=1:size(sampleFrame, 3)
         ThirdImageFilter(pos);
 end
 
-% imshowpair(frame, sampleFrame, 'montage')
-
-% failure of division of image and removal of pointer
-rgbImage = sampleFrame;
-colorBarImage = sampleFrame(colorBarCrop(1):colorBarCrop(2), ...
-    colorBarCrop(3):colorBarCrop(4), :);
-
-% Failure of rgb to 2d, median * 3 and 2d to rgb
-% rgb to 2d
-% Get the color map from the color bar image.
-storedColorMap = colorBarImage(:,size(colorBarImage,2)/2,:);
-% Need to call squeeze to get it from a 3D matrix to a 2-D matrix.
-% Also need to divide by 255 since colormap values must be between 0 and 1.
-storedColorMap = double(squeeze(storedColorMap)) / 255;
-% Need to flip up/down because the low rows are the high temperatures, 
-% not the low temperatures.
-storedColorMap = flipud(storedColorMap);
-% Convert the subject/sample from a pseudocolored RGB image to a 
-% grayscale, indexed image.
-indexedImage = rgb2ind(rgbImage, storedColorMap);
-
-FirstImageFilter = medfilt2(indexedImage);
-SecondImageFilter = medfilt2(FirstImageFilter);
-ThirdImageFilter = medfilt2(SecondImageFilter);
-% 2d to rgb
-BluredRGBImage = ind2rgb(indexedImage, storedColorMap);
-sampleFrame(pointerOutliner==0) = BluredRGBImage(pointerOutliner==0);
-
-figure;
-subplot(1,2,1); imshow(BluredRGBImage); title('Blured frame')
-subplot(1,2,2); imshow(sampleFrame); title('Pointer removed')
-
-% difference between rgb2ind image and the gray image - great image quality
-% difference
-figure;
-subplot(1,2,1); imshow(indexedImage)
-subplot(1,2,2); imshow(rgb2gray(sampleFrame))
-
-% pointer removed from gray image
-FirstImageFilter = medfilt2(rgb2gray(sampleFrame));
-SecondImageFilter = medfilt2(FirstImageFilter);
-ThirdImageFilter = medfilt2(SecondImageFilter);
-figure;
-subplot(1,3,1); imshow(FirstImageFilter); title('Blured frame')
-subplot(1,3,2); imshow(SecondImageFilter); title('Pointer removed')
-subplot(1,3,3); imshow(ThirdImageFilter); title('Pointer removed')
-
-
 %% Image Crop of the RGB
 % Undestorted image
-s = sampleFrame;
+noPointer = sampleFrame;
+sampleFrame = noPointer;
+% image crop
 CroppedRGBFrame = sampleFrame(imageCrop(1):imageCrop(2), ...
     imageCrop(3):imageCrop(4), :);
-noPointer = sampleFrame;
 
-
-
+% blackened image
 r = [1:imageCrop(1)-1, imageCrop(2)+1:size(sampleFrame, 1)];
 c = [1:(imageCrop(3)-1), imageCrop(4)+1:size(sampleFrame,2)];
 sampleFrame(1:imageCrop(1)-1,:,:) = 0;
@@ -127,7 +79,42 @@ sampleFrame(:,1:(imageCrop(3)-1),:) = 0;
 sampleFrame(:,imageCrop(4)+1:size(sampleFrame,2),:) = 0;
 imshow(sampleFrame)
 
+
+pos = find(~distoredRegions);
+for channel=1:size(sampleFrame, 3)
+    sampleFrame(channelLength*(channel-1)+pos) = 0;
+end
+imshow(sampleFrame)
+
+% thresholding
 [binaryMask, thresholdedImage] = HSVMask(sampleFrame);
+[BW2,maskedImage2] = segmentImageLine(rgb2gray(sampleFrame));
+[BW,maskedImage] = segmentImageDisk(rgb2gray(sampleFrame));
+figure;
+subplot(2,2,1); imshow(sampleFrame)
+subplot(2,2,2); imshow(thresholdedImage)
+subplot(2,2,3); imshow(maskedImage2)
+subplot(2,2,4); imshow(maskedImage)
+
+imshow(imoverlay(thresholdedImage,maskedImage,'cyan'))
+imshow(imoverlay(maskedImage,maskedImage2,'cyan'))
+% The best choice
+imshow(imoverlay(maskedImage2,maskedImage,'cyan'))
+
+
+pos2 = find(maskedImage2==0);
+for channel=1:size(sampleFrame, 3)
+    sampleFrame(channelLength*(channel-1)+pos2) = 0;
+end
+imshow(sampleFrame)
+
+% [temperatureImageMap, indColorMap] = convertToThermalImage(...
+%     sampleFrame, CroppedRGBColorBar, ...
+%     highTemp, lowTemp);
+g = rgb2gray(sampleFrame);
+surf(g)
+contour3(g)
+
 %% RGB image analysis
 
 %% usage of multiple filters on the rgb image - FAILURE
@@ -201,13 +188,6 @@ imshowpair(I, BW, 'montage')
 Iblur = imgaussfilt(sampleFrame,5);
 imshow(Iblur)
 
-
-%% Create an emptry strucure that will hause the video frame data
-% NOT USED
-function structure = container(Height, Width)
-structure = struct('colordata',zeros(Height,Width,3,'uint8'),...
-    'colormap',[]);
-end
 
 %% Populate the empty strucure from container function with frame 
 % data from the video
